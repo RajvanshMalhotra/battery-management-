@@ -2,40 +2,15 @@
 
 # **Battery Management System with Machine Learning**
 
-## **Overview**
-This project focuses on predicting the **Remaining Useful Life (RUL)** of batteries using a **Random Forest** model. The machine learning code processes sensor data (e.g., temperature, discharge rate, and current) to provide actionable insights for optimizing battery performance and predicting degradation.
+#**Abstract**
+Lead-acid batteries power the critical starting systems of over a billion vehicles worldwide, yet conventional voltage-based monitoring often fails to detect internal degradation until a sudden no start failure occurs. Addressing this gap, we present a low-cost, edge-native TinyML framework that performs accurate battery diagnostics directly on an ESP32 microcontroller  eliminating cloud dependency and enabling fully offline inference.
 
----
+Our approach leverages a Physics block on top of a neural network to estimate State of Charge (SOC) and dynamically forecast Time-to-Empty (TTE) using real-time voltage, current, and temperature sensor data. By integrating physics-based constraints with data-driven learning, the model ensures both predictive accuracy and physical consistency.
 
-## **Features**
-- Predicts **Remaining Useful Life (RUL)** based on input parameters.
-- Utilizes the **Random Forest** algorithm for robust predictions.
-- Processes sensor data to simulate real-world battery management scenarios.
+A key innovation of this work is the introduction of a novel Virtual Cranking mechanism, which estimates internal resistance in real time and simulates a 200A engine start event to proactively predict potential no-crank failures. This safety-aware diagnostic layer enables pre-emptive alerts before critical battery failure occurs.
 
----
+The deployed TinyML model achieves an R² score of 99.7%, demonstrating near-perfect alignment with true degradation patterns while remaining computationally efficient for resource-constrained embedded systems.
 
-## **Project Workflow**
-1. **Dataset**:
-   - Data includes features such as **temperature**, **discharge rate**, and **current**.
-   - Historical battery performance metrics used for training and testing.
-
-2. **Machine Learning Pipeline**:
-   - **Data Preprocessing**: Cleaned and prepared the dataset for modeling.
-   - **Model Building**: Trained a **Random Forest Regressor** to predict RUL.
-   - **Evaluation**: Assessed model accuracy using metrics like **Mean Absolute Error (MAE)** and **R² Score**.
-
-3. **Output**:
-   - Predicts the RUL for a given set of battery parameters.
-   - Provides predictions as a single output or batch.
-
----
-
-## **Technologies Used**
-- **Programming Language**: Python
-- **Libraries**:
-  - **scikit-learn**: Model training and evaluation.
-  - **Pandas**: Data manipulation.
-  - **NumPy**: Numerical computations.
-  - **Matplotlib**/**Seaborn**: Visualization.
+This work bridges the gap between physics-based battery diagnostics and edge-deployed machine learning, offering a scalable, energy-efficient, and production-ready solution for next-generation battery health monitoring.
 
 ---
