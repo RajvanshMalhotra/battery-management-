@@ -1,16 +1,75 @@
+## Abstract
+
+This project develops a **Physics-Informed Neural Network (PINN)** to estimate the **State of Charge (SoC)** of a battery system using time-series IoT sensor data. The core motivation is to go beyond purely data-driven approaches by embedding known physical laws of battery behaviour directly into the model's learning objective, improving both accuracy and physical consistency of predictions.
+
 ---
 
-# **Battery Management System with Machine Learning**
+## Problem Statement
 
-**Abstract**
-Lead-acid batteries power the critical starting systems of over a billion vehicles worldwide, yet conventional voltage-based monitoring often fails to detect internal degradation until a sudden no start failure occurs. Addressing this gap, we present a low-cost, edge-native TinyML framework that performs accurate battery diagnostics directly on an ESP32 microcontroller  eliminating cloud dependency and enabling fully offline inference.
+Accurate SoC estimation is critical in battery-powered IoT systems. Traditional Coulomb counting methods accumulate error over time, while pure machine learning models lack physical interpretability and may produce physically implausible outputs (e.g., SoC > 100%). This work addresses both limitations by combining data-driven learning with physics-based constraints.
 
-Our approach leverages a Physics block on top of a neural network to estimate State of Charge (SOC) and dynamically forecast Time-to-Empty (TTE) using real-time voltage, current, and temperature sensor data. By integrating physics-based constraints with data-driven learning, the model ensures both predictive accuracy and physical consistency.
+---
 
-A key innovation of this work is the introduction of a novel Virtual Cranking mechanism, which estimates internal resistance in real time and simulates a 200A engine start event to proactively predict potential no-crank failures. This safety-aware diagnostic layer enables pre-emptive alerts before critical battery failure occurs.
+## Dataset
 
-The deployed TinyML model achieves an R² score of 99.7%, demonstrating near-perfect alignment with true degradation patterns while remaining computationally efficient for resource-constrained embedded systems.
+The model is trained on IoT sensor data (`saved_iot_new_data.csv`) containing the following features:
 
-This work bridges the gap between physics-based battery diagnostics and edge-deployed machine learning, offering a scalable, energy-efficient, and production-ready solution for next-generation battery health monitoring.
+| Feature | Description |
+|---|---|
+| `current` | Instantaneous battery current (A) |
+| `voltage` | Terminal voltage (V) |
+| `temp` | Battery temperature |
+| `dt_hours` | Time step duration (hours) |
+| `ah_consumed` | Ampere-hours consumed in step |
+| `total_ah_used` | Cumulative Ah drawn |
+| `True_SoC` | Ground truth State of Charge (%) — target variable |
+
+The data is normalized using `MinMaxScaler` and split into training (70%), validation (15%), and test (15%) sets.
+
+---
+
+## Model Architecture
+
+A fully connected feedforward neural network with the following configuration:
+
+- **Input layer**: 6 features
+- **Hidden layers**: 2 × 32 neurons with ReLU activations
+- **Output layer**: 1 neuron (predicted SoC)
+- **Optimizer**: AdamW (lr=0.03, weight_decay=0.1)
+- **Epochs**: 100 | **Batch size**: 64
+
+---
+
+## Physics Integration
+
+The governing physical equation used is **Coulomb Counting**:
+
+$$\frac{d(\text{SoC})}{dt} = -\frac{I}{Q_{\text{nominal}}} \times 100$$
+
+Where `I` is current (A) and `Q_nominal = 16 Ah` is the assumed nominal battery capacity.
+
+The **physics-informed loss** penalises:
+1. **ODE residual**: violation of the Coulomb counting equation, computed via `torch.autograd.grad` on the `dt_hours` input
+2. **Boundary constraints**: predictions outside the physical range [0%, 100%]
+
+The total loss function is:
+
+$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{data}} + \lambda \cdot \mathcal{L}_{\text{physics}}$$
+
+with `λ = 0.1`.
+
+---
+
+
+
+## Results
+
+Model performance is evaluated on the held-out test set using MSE, MAE, and R² score, alongside visualisation of predicted vs. true SoC trajectories and decomposed physics loss components.
+
+---
+
+## Tech Stack
+
+`Python` · `PyTorch` · `scikit-learn` · `pandas` · `matplotlib` · Google Colab
 
 ---
